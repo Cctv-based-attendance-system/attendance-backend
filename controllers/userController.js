@@ -102,6 +102,7 @@ const userVerifyPost = async (req, res) => {
     user.accountActive = "active";
     await user.save();
     const templateVars = {
+      btn: "Soon",
       userEmail: user?.userEmail,
       password: user?.password,
       userName: user?.userName,
@@ -162,6 +163,7 @@ const userLoginPost = async (req, res) => {
       }
       if (user?.accountActive !== "active") {
         const templateVars = {
+          btn: "soon",
           userName: user?.userName,
           verifyUrl: `${process.env.BACKEND_URL}/api/v1/user/verify/${user?._id}`,
         };
