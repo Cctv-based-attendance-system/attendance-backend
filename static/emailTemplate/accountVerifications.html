@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+            border: 1px solid #dcdcdc;
+            border-radius: 8px;
+        }
+
+        .header {
+            background-color: #00bcd4;
+            color: #ffffff;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .content {
+            padding: 20px;
+            background-color: #ffffff;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #f4f4f4;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: #ffffff;
+            background-color: #00bcd4;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .footer a {
+            color: #00bcd4;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome to Purnea College Of Engineering</h1>
+        </div>
+        <div class="content">
+            <p>Dear {{userName}},</p>
+            <p>We are excited to have you join our community! To complete your registration, please verify your email
+                address by clicking the link below:</p>
+            <a href="{{verifyUrl}}" class="button">Verify Email</a>
+            <p>If you have any questions or need further assistance, feel free to contact our support team.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2017 Purnea College Of Engineering. All rights reserved.</p>
+            <p><a href="tel:+06454-226777">Contact Support</a></p>
+        </div>
+    </div>
+</body>
+
+</html>
