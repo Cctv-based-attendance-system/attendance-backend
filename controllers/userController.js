@@ -76,6 +76,8 @@ const userPost = async (req, res) => {
       password,
       userBranch,
       accountActive: accountTypeIsActive,
+      passwordUser:
+        userRole === "teacher" || userRole === "hod" ? "not" : password,
     });
     // console.log(user);
 
@@ -104,7 +106,7 @@ const userVerifyPost = async (req, res) => {
     const templateVars = {
       btn: "Soon",
       userEmail: user?.userEmail,
-      password: user?.password,
+      password: user?.passwordUser,
       userName: user?.userName,
       userRoleDerived: "students",
     };
@@ -163,7 +165,6 @@ const userLoginPost = async (req, res) => {
       }
       if (user?.accountActive !== "active") {
         const templateVars = {
-          btn: "soon",
           userName: user?.userName,
           verifyUrl: `${process.env.BACKEND_URL}/api/v1/user/verify/${user?._id}`,
         };

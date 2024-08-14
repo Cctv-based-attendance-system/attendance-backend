@@ -41,7 +41,8 @@ export const sendToken = (
     if (role !== "end-user") {
       if (token) {
         const templateVars = {
-          btn: role !== "end-user" ? "Login" : "Soon",
+          btn: "Login",
+
           userEmail,
           password,
           userName,
@@ -51,7 +52,6 @@ export const sendToken = (
       }
     } else {
       const templateVars = {
-        btn: "soon",
         userName,
         verifyUrl: `${process.env.BACKEND_URL}/api/v1/user/verify/${user?._id}`,
       };
