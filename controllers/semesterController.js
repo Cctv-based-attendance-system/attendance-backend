@@ -34,7 +34,7 @@ const semesterPost = async (req, res) => {
     }
 
     if (semesterName) {
-      if (semesterName >= 8) {
+      if (semesterName > 8) {
         return res.status(404).json({
           success: false,
           message: "semester should be 8 or less then that",
