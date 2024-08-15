@@ -15,10 +15,11 @@ const router = express.Router();
 import { auth } from "../middleware/auth.js";
 router.get("/:id", attendanceGet);
 
-router.post("/", attendancePost);
+router.post("/", auth, attendancePost);
+
 router.get("/", attendanceGetAll);
 router.delete("/:id", attendanceGetDelete);
-router.put("/:id", attendancePut);
+router.put("/:id", auth, attendancePut);
 router.post("/default", auth, attendanceDefaultPut);
 router.get("/take/attendance", auth, attendanceTakeAttendanceGet);
 

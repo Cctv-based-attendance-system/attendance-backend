@@ -40,67 +40,71 @@ const attendanceGet = async (req, res) => {
 };
 const attendancePost = async (req, res) => {
   try {
-    const { session, semester, branch, subjects, student, status, takenBy } =
-      req.body;
-
-    if (!session) {
+    const { currentAttendance } = req.body;
+    const currentTeacher = await User.findById(req?.user?._id);
+    if (!currentTeacher) {
+      // console.log(req?.user?._id);
       return res.status(404).json({
         success: false,
-        message: "session is missing",
+        message: "teacher id not found",
       });
     }
-    if (!branch) {
-      return res.status(404).json({
-        success: false,
-        message: "branch is missing",
-      });
-    }
-    if (!takenBy) {
-      return res.status(404).json({
-        success: false,
-        message: "takenBy is missing",
-      });
-    }
-    if (!semester) {
-      return res.status(404).json({
-        success: false,
-        message: "semester is missing",
-      });
-    }
-    if (!subjects) {
-      return res.status(404).json({
-        success: false,
-        message: "subjects is missing",
-      });
-    }
-    if (!student) {
-      return res.status(404).json({
-        success: false,
-        message: "students is missing",
-      });
-    }
-    if (!status) {
-      return res.status(404).json({
-        success: false,
-        message: "status is missing",
-      });
-    }
-
-    const attendance = await Attendance.create({
-      session,
-      semester,
-      branch,
-      subjects,
-      student,
-      status,
-      takenBy,
+    const existAttendance = await Attendance.findOne({
+      session: currentTeacher.defaultSubjectOfTeacher.session,
+      semester: currentTeacher.defaultSubjectOfTeacher.semester,
+      branch: currentTeacher.defaultSubjectOfTeacher.branch,
+      subjects: currentTeacher.defaultSubjectOfTeacher.subject,
+      date: new Date().toLocaleDateString(),
     });
-    res.status(201).json({
-      success: true,
-      message: "attendance is created successfully",
-      attendance,
+    if (existAttendance) {
+      return res.status(404).json({
+        success: false,
+        message: "attendance is already created",
+        existAttendance,
+      });
+    }
+    let attendance = await Attendance.create({
+      session: currentTeacher.defaultSubjectOfTeacher.session,
+      semester: currentTeacher.defaultSubjectOfTeacher.semester,
+      branch: currentTeacher.defaultSubjectOfTeacher.branch,
+      subjects: currentTeacher.defaultSubjectOfTeacher.subject,
+      attendanceRecords: currentAttendance,
+      takenBy: req?.user?._id,
+      date: new Date().toLocaleDateString(),
     });
+
+    const infoAtt = await attendance?.populate("attendanceRecords.student");
+
+    if (infoAtt) {
+      const info = infoAtt?.attendanceRecords?.map((e) => {
+        return { ...e.toObject() };
+      });
+
+      const infoNext = info?.map((e) => {
+        let students = e?.student;
+
+        return { ...students, status: e?.status };
+      });
+      const subject = await Subject.findOne({
+        _id: currentTeacher.defaultSubjectOfTeacher.subject,
+      });
+      return res.status(200).json({
+        success: true,
+        message: "default session set",
+        attendanceStudents: infoNext,
+        subject,
+        id: attendance?._id,
+      });
+    }
+    // console.log(info);
+
+    // res.status(201).json({
+    //   success: true,
+    //   message: "attendance is created successfully",
+    //   attendance,
+    // });
   } catch (e) {
+    console.log(e);
     res.status(500).json({
       success: false,
       message: "something went wrong",
@@ -134,7 +138,54 @@ const attendanceGetAll = async (req, res) => {
 
 const attendancePut = async (req, res) => {
   try {
+    const { id } = req.params;
+    const { currentAttendance } = req.body;
+    const studentAttendance = await Attendance.findById(id);
+    if (!studentAttendance) {
+      res.status(500).json({
+        success: false,
+        message: "attendance id not found",
+      });
+    }
+
+    const teacher = await User.findById(req.user?._id);
+    if (!teacher) {
+      res.status(500).json({
+        success: false,
+        message: "attendance id not found",
+      });
+    }
+
+    studentAttendance.attendanceRecords = currentAttendance;
+    await studentAttendance.save();
+
+    const infoAtt = await studentAttendance?.populate(
+      "attendanceRecords.student"
+    );
+
+    if (infoAtt) {
+      const info = infoAtt?.attendanceRecords?.map((e) => {
+        return { ...e.toObject() };
+      });
+
+      const infoNext = info?.map((e) => {
+        let students = e?.student;
+
+        return { ...students, status: e?.status };
+      });
+      const subject = await Subject.findOne({
+        _id: teacher.defaultSubjectOfTeacher.subject,
+      });
+      return res.status(200).json({
+        success: true,
+        message: "default session set",
+        attendanceStudents: infoNext,
+        subject,
+        id: id,
+      });
+    }
   } catch (e) {
+    console.log(e);
     res.status(500).json({
       success: false,
       message: "something went wrong",
@@ -151,7 +202,6 @@ const attendanceDefaultPut = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "user not found",
-        error: e,
       });
     }
 
@@ -169,6 +219,7 @@ const attendanceDefaultPut = async (req, res) => {
       attendanceStudents: user,
     });
   } catch (e) {
+    console.log(e);
     res.status(500).json({
       success: false,
       message: "something went wrong",
@@ -186,22 +237,52 @@ const attendanceTakeAttendanceGet = async (req, res) => {
         message: "user not found",
       });
     }
-    console.log(user);
+    // console.log(user);
+
+    const existAttendance = await Attendance.findOne({
+      session: user.defaultSubjectOfTeacher.session,
+      semester: user.defaultSubjectOfTeacher.semester,
+      branch: user.defaultSubjectOfTeacher.branch,
+      subjects: user.defaultSubjectOfTeacher.subject,
+      date: new Date().toLocaleDateString(),
+    }).populate("attendanceRecords.student");
     const currentStudents = await User.find({
       userSession: user.defaultSubjectOfTeacher.session,
       userSemester: user.defaultSubjectOfTeacher.semester,
       userBranch: user.defaultSubjectOfTeacher.branch,
     });
-    //   .populate("session")
-    //   .populate("semester")
-    //   .populate("branch");
+
     const subject = await Subject.findOne({
       _id: user.defaultSubjectOfTeacher.subject,
     });
+
+    // console.log(infoNext);
+    if (existAttendance) {
+      const info = existAttendance?.attendanceRecords?.map((e) => {
+        return { ...e.toObject() };
+      });
+
+      const infoNext = info?.map((e) => {
+        let students = e?.student;
+
+        return { ...students, status: e?.status };
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "default session set",
+        attendanceStudents: infoNext,
+        subject,
+        id: existAttendance?._id,
+      });
+    }
     res.status(200).json({
       success: true,
       message: "default session set",
-      attendanceStudents: currentStudents,
+      attendanceStudents: currentStudents.map((student) => ({
+        ...student.toObject(),
+        status: "present",
+      })),
       subject,
     });
   } catch (e) {

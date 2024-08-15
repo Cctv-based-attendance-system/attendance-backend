@@ -55,7 +55,7 @@ const userSchema = new mongoose.Schema(
     },
     passwordUser: {
       type: String,
-      required: true,
+      default: "not",
     },
     updatedBy: {
       type: mongoose.Schema.Types.ObjectId,
