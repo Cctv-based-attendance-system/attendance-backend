@@ -1,5 +1,6 @@
 import { Attendance } from "../model/attendanceSchema.js";
 import ExcelJS from "exceljs";
+import mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -319,6 +320,170 @@ const attendanceGetDelete = async (req, res) => {
   }
 };
 
+const attendanceAttendanceGet = async (req, res) => {
+  try {
+    const { userId, subjectId } = req.params;
+    const user = await User.findOne({ _id: userId });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "user Not Found",
+      });
+    }
+
+    // console.log(user);
+    const subject = await Subject.findById(subjectId);
+
+    if (!subject) {
+      return res.status(404).json({
+        success: false,
+        message: "subject Not Found",
+      });
+    }
+    const attendance = await Attendance.find({
+      session: user?.userSession,
+      semester: user?.userSemester,
+      branch: user?.userBranch,
+      subjects: subjectId,
+    }).populate("attendanceRecords.student");
+    // console.log(attendance);
+
+    if (!attendance) {
+      return res.status(404).json({
+        success: true,
+        message: "attendance Not Found",
+        attendance: "",
+      });
+    }
+    const infoAtt = attendance?.map((s) => {
+      const students = s.attendanceRecords.filter((a) => {
+        return a?.student?._id.equals(new mongoose.Types.ObjectId(userId));
+      });
+      const attendance = students[0].status;
+      // console.log(attendance);
+      return {
+        date: s?.date,
+        status: attendance,
+        name: user?.userName,
+        email: user?.userEmail,
+        phone: user?.userPhone,
+        regNo: user?.userRegNo,
+      };
+    });
+    console.log(infoAtt);
+    // const infoAtt2 = infoAtt?.map((s) => {
+    //   return {
+    //     date: s?.date,
+    //     attendanceRecords: students,
+    //   };
+    // });
+
+    res.status(200).json({
+      success: true,
+      message: "attendance deleted successfully",
+      attendance: infoAtt,
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({
+      success: false,
+      message: "something went wrong",
+      error: e,
+    });
+  }
+};
+const attendanceAttendanceBranchGet = async (req, res) => {
+  try {
+    const { semester, branch, session } = req.params;
+
+    const attendance = await Attendance.find({
+      session: session,
+      semester: semester,
+      branch: branch,
+    }).populate("attendanceRecords.student");
+
+    if (!attendance) {
+      return res.status(404).json({
+        success: true,
+        message: "attendance Not Found",
+      });
+    }
+    const user = await User.find({
+      userSession: session,
+      userSemester: semester,
+      userBranch: branch,
+    });
+    // console.log(attendance);
+    const info = user?.map((u) => {
+      let present = 0;
+
+      const infoAtt = attendance?.map((s) => {
+        const students = s.attendanceRecords.find((a) => {
+          console.log(a?.student?._id, u?._id);
+          //  return a?.student?._id.equals(new mongoose.Types.ObjectId(userId));
+          return a?.student?._id === u?._id;
+        });
+        // const attendance = students.status;
+        console.log(students);
+        // return {
+        //   date: s?.date,
+        //   status: attendance,
+        //   name: user?.userName,
+        //   email: user?.userEmail,
+        //   phone: user?.userPhone,
+        //   regNo: user?.userRegNo,
+        // };
+      });
+      // console.log(infoAtt);
+      // attendance.forEach((a) => {
+      //   if (a?._id === u?._id) {
+      //   }
+      // });
+    });
+    // const infoAtt = attendance?.map((s) => {
+    //   const students = s.attendanceRecords.filter((a) => {
+    //     // console.log("user", userId);
+    //     // console.log("student", a?.student?._id);
+    //     // console.log(
+    //     //   "student",
+    //     //   a?.student?._id.equals(new mongoose.Types.ObjectId(userId))
+    //     // );
+
+    //     return a?.student?._id.equals(new mongoose.Types.ObjectId(userId));
+    //   });
+    //   const attendance = students[0].status;
+    //   // console.log(attendance);
+    //   return {
+    //     date: s?.date,
+    //     status: attendance,
+    //     name: user?.userName,
+    //     email: user?.userEmail,
+    //     phone: user?.userPhone,
+    //     regNo: user?.userRegNo,
+    //   };
+    // });
+    // console.log(infoAtt);
+    // const infoAtt2 = infoAtt?.map((s) => {
+    //   return {
+    //     date: s?.date,
+    //     attendanceRecords: students,
+    //   };
+    // });
+
+    res.status(200).json({
+      success: true,
+      message: "attendance deleted successfully",
+      attendance: user,
+    });
+  } catch (e) {
+    console.log(e);
+    res.status(500).json({
+      success: false,
+      message: "something went wrong",
+      error: e,
+    });
+  }
+};
 const attendanceInExcelGet = async (req, res) => {
   try {
     const attendanceRecords = await Attendance.find({})
@@ -561,4 +726,6 @@ export {
   attendanceInExcelBranchGet,
   attendanceInExcelStudentsGet,
   attendanceTakeAttendanceGet,
+  attendanceAttendanceGet,
+  attendanceAttendanceBranchGet,
 };

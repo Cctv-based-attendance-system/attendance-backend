@@ -22,14 +22,14 @@ export const sendEmail = async (to, subject, templateName, templateVars) => {
     const transporter = createTransport({
       service: "gmail",
       auth: {
-        user: "pce.attendance@gmail.com",
+        user: "rajeevraaz2pz@gmail.com",
         pass: process.env.NODEMAILER_PASSWORD,
       },
     });
-
+    console.log(to, subject);
     await transporter.sendMail({
-      // from: '"Purnea College Of Engineering" <pce.attendance@gmail.com>',
-      from: "pce.attendance@gmail.com",
+      // from: '"Purnea College Of Engineering" <rajeevraaz2pz@gmail.com>',
+      from: "rajeevraaz2pz@gmail.com",
       to,
       subject,
       html: htmlTemplate,
